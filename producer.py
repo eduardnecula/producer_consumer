@@ -10,7 +10,9 @@ March 2021
 import re
 # pentru sleep
 import time
+
 from threading import Thread
+
 
 def decompose(product):
     """
@@ -25,13 +27,17 @@ def decompose(product):
 
     # lista in care se va scrie
     list_product = []
+
     # produsul de convertit element cu element in lista
     convstring = str(product)
     splitstring = re.findall('\[[^\]]*\]|\([^\)]*\)|\"[^\"]*\"|\S+', convstring)
+
     # numele produsului
     productname = splitstring.pop(0)
+
     # numarul de produse de produs
     numberproducts = splitstring.pop(1)
+
     # timpul de producere al unui produs
     waittime = splitstring.pop(1)
 
@@ -78,6 +84,7 @@ class Producer(Thread):
 
         Thread.__init__(self, **kwargs)
 
+        # argumentele primite din functie
         self.products = products
         self.marketplace = marketplace
         self.republish_wait_time = republish_wait_time
@@ -97,8 +104,6 @@ class Producer(Thread):
         # producator 0, a pus 0 produse
         self.marketplace.number_products_producers.append({self.id_producer: 0})
 
-        producer_name = self.id_producer
-
         # producatorul incearca sa publice la infinit
         while True:
 
@@ -114,7 +119,7 @@ class Producer(Thread):
                 # daca produce un nr multiplu de produse, se itereaza prin numarul lor
                 while product_number:
                     # se publica in lista de la MarketPlace produsul, daca se poate
-                    can_publish = self.marketplace.publish(producer_name, product_name)
+                    can_publish = self.marketplace.publish(self.id_producer, product_name)
                     if can_publish:
                         # timpul de fabricare a produsului
                         time.sleep(sleep_time)
