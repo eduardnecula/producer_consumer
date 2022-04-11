@@ -10,11 +10,13 @@ from multiprocessing import Semaphore, Lock
 
 from producer import Producer
 
+
 class Marketplace:
     """
     Class that represents the Marketplace. It's the central part of the implementation.
     The producers and consumers use its methods concurrently.
     """
+
     def __init__(self, queue_size_per_producer):
         """
         Constructor
@@ -90,18 +92,24 @@ class Marketplace:
         :returns True or False. If the caller receives False, it should wait and then try again
         """
         my_lock = Lock()
+        find_drink = False
 
         self.semaphore_full.acquire()
-        print("caut sa vad daca gasesc: ", product)
+        # print(self.market_list)
+        # print("caut sa vad daca gasesc: ", product)
 
-        print(self.market_list)
+        product_string = str(product)
+
+        if str(self.market_list).find(product_string) != -1:
+            find_drink = True
+
         with my_lock:
             self.number_products -= 1
-            #print("iau din market")
+            # print("iau din market")
 
         self.semaphore_empty.release()
 
-        return True
+        return find_drink
 
     def remove_from_cart(self, cart_id, product):
         """
@@ -113,8 +121,13 @@ class Marketplace:
         :type product: Product
         :param product: the product to remove from cart
         """
-        print("(sterg) incerc sa adaug in marketPlace: ", product)
-        return True
+
+        if self.number_products < self.queue_size_per_producer:
+            self.market_list.append(product)
+            # print("(sterg) incerc sa adaug in marketPlace: ", product)
+            return True
+
+        return False
 
     def place_order(self, cart_id):
         """

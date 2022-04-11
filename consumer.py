@@ -5,8 +5,8 @@ Computer Systems Architecture Course
 Assignment 1
 March 2021
 """
-
-from threading import Thread
+import time
+from threading import Thread, Lock
 
 
 class Consumer(Thread):
@@ -48,9 +48,19 @@ class Consumer(Thread):
         self.retry_wait_time = retry_wait_time
         self.kwargs = kwargs
 
+        # lista de cumparaturi
+        self.shopping_list = []
+
         carts_type = {}
         # trec prin fiecare cart
-        for i in carts:
+
+        pass
+
+    def run(self):
+        my_lock = Lock()
+        lock_print = Lock()
+
+        for i in self.carts:
             # in caz ca sunt mai multe carucioare in caracioare
             for j in i:
                 carts_type = j
@@ -64,18 +74,26 @@ class Consumer(Thread):
                         while True:
                             add_cart = self.marketplace.add_to_cart(0, product_type)
                             if add_cart:
+                                name_consumer = self.kwargs['name']
+                                # print(name_consumer, " bought ", product_type)
+                                to_append = str(name_consumer) + " bought " + str(product_type)
+                                with my_lock:
+                                    self.shopping_list.append(to_append)
                                 break
+                            time.sleep(self.retry_wait_time)
                 else:
                     # adaug produsul in lista de la marketplace
                     for k in range(quantity):
-                        while True:
-                            remove_cart = self.marketplace.remove_from_cart(0, product_type)
-                            if remove_cart:
-                                break
-                    pass
+                        with my_lock:
+                            while True:
+                                remove_cart = self.marketplace.remove_from_cart(0, product_type)
+                                if remove_cart:
+                                    name_consumer = self.kwargs['name']
+                                    to_append = str(name_consumer) + " bought " + str(product_type)
+                                    self.shopping_list.remove(to_append)
+                                    break
+                            time.sleep(self.retry_wait_time)
 
-        pass
-
-    def run(self):
-
-        pass
+        with lock_print:
+            for i in self.shopping_list:
+                print(i)
