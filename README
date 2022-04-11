@@ -1,0 +1,109 @@
+Tema 1 - ASC
+Necula Eduard-Ionut, 332CA
+
+Explicatie tema:
+
+
+
+Producator:
+
+Implementat in fisierul producer.py.
+
+Logica producator:
+        Fiecare producator incearca sa publice la infinit, pana cand numarul de produse publicat ajunge la un maxim ce
+    este dat in marketplace.
+        Fiecare producator, itereaza prin numarul de produse pe care le poate publica, din fiecare tip. Daca acesta
+    zice ca poate produce 5 produse de tip ceai si 2 produse de tip cafea, el va pune pe rand 5 produse de tip ceai
+    apoi cele 2 produse de tip cafea.
+        Daca un producator nu poate sa publice, acesta va astepta pana cand se va cumpara un produs din lista acestuia.
+
+Cum stie programul cate produse are fiecare producator?
+        In marketplace, exista o lista, in care, pentru fiecare producator ce apare pe piata, se adauga in lista un id
+    pentru producator, si numarul sau de produse avand structura: {id_producator: nr_produse}. Daca nr_produse ajunge
+    la maximul definit in marketplace, atunci producator asteapta, pana cand poate publica iar.
+        Dupa fiecare produs pe care poate sa-l adauge, asteapta o perioada de timp, ce reprezinta timpul de creare
+    a produsului.
+        Fiecare producator primeste un id, ce este sincronizat cu Lock() deoarece acesta este unic, si se incrementeaza
+    la fiecare aparitie a unui nou producator.
+
+
+
+Consumator:
+
+Implementat in fisierul consumer.py.
+
+Logica consumator:
+        Fiecare consumator incearca sa cumpere un anumit tip de produs, de o cantitate ori.
+        Deoarece consumatorul are mai multe carucioare infinite, se itereaza prin fiecare carucior.
+        Prin fiecare carucior, se cauta ce produs vrea si de cati ori vrea acest produs, apoi se itereaza prin numarul
+    de produse dorite.
+        Consumatorul apeleaza add_to_cart() din marketplace, ce intoarce True / False. True daca produsul exista pe
+    piata, si false altfel.
+        Daca consumatorul gaseste produsul pe piata, ceea ce inseamna ca primeste True de la add_to_cart(), atunci
+    consumatorul va adauga in lista lui de cumparaturi produsul.
+        Daca consumatorul adauga in produs in cosul lui, el stie de la ce producator a cumparat acest produs, iar in
+    lista cu numarul de produse al fiecarui producator se va decrementa numarul de produse cu 1.
+        Daca consumatorul se razgandeste si sterge un produs din lista lui de cumparaturi, atunci produsul se va
+    reintoarce in marketplace, iar numarul de produse din lista acelui producator de la care a cumparat, va creste cu 1.
+        Atunci cand consumatorul nu gaseste nicaieri pe piata produsul, acesta asteapta un timp predefinit, si mai
+    incearca, pana cand lista lui de cumparaturi se termina.
+        Cand un consumator isi termina lista lui de cumparaturi, acesta va afisa lista. Se afiseaza sincronizat lista
+    de prosuse, folosind Lock(), pentru ca printurile sa nu se intercaleze.
+
+
+
+Marketplace:
+
+Implementat in fisierul marketplace.py
+
+Logica marketplace:
+    Acesta este fisierul cu functiile apelate de producator si de consumator.
+    Contine urmatoarele functii:
+
+        1. register_producer(): intoarce un id pentru producator, fiind sincronizata, pentru a avea un id unic
+
+        2. publish(): daca un producator poate sa publice un produs, va intoarce True. Daca numarul de produse introdus
+        de producator este mai mic decat un maxim predefinit in marketplace, atunci produsul va fi publicat
+
+        3. add_to_cart(): daca un produs se afla in marketplace, acesta functie va intoarce True, produsul respectiv
+        va fi luat din marketplace, iar numarul de produse al unui producator va fi decrementat
+
+        4. remove_from_cart(): daca produsul pe care il elimina un consumator poate fi pus in marketplace, se va intoarce
+        True, numarul de produse al unui producator va fi incrementat
+
+
+Logging:
+        La inceputul fiecarei functii s-a afisat parametrii primiti.
+        La sfarsitul fieccarei functii se afiseaza ce intoarce functia.
+        Fiecare mesaj logging de tip INFO, contine timpul in format gmtime, numele functiei si o descriere scurta a
+    parametrilor afisati.
+
+
+UnitTesting:
+    Pentru fiecare functie din clasa marketplace, s-a implementat cate 1 test, ce verifica functionalitatile functiei
+
+    1. Pentru functia register_producer(), se verifica intoarcerea unuui indice a unui producator in mod corect
+
+    2. Pentru functia publish(), se verifca ca produsele sunt adaugate in marketplace, pana la maximul posibil,
+    altfel esueaza
+
+    3. Pentru functia add_to_cart(), se verifica ca un produs existent din marketplace poate fi adaugat in lista de
+    cumparaturi a unui consumator, altfel functia esueaza
+
+    4. Pentru functia remove_from_cart(), se verifica daca un produs din lista unui consumator, este adaugat
+    in marketplace
+
+        Fiecare test verifica mai multe cazuri, si pozitive si negatice, daca acestea nu dau True / False, inseamna ca
+    logica functiei nu este buna.
+
+
+        Logica programului este implementata integral, functiile de id pentru cart si lista de la id-ul unui cart nu
+    au fost implementate, din lipsa de logica pentru afisarea de la final. Daca se cerea id-ul cartului la afisare,
+    puteau fi implementate si acestea.
+
+    Resurse utile:
+        https://ocw.cs.pub.ro/courses/asc/laboratoare/01https://ocw.cs.pub.ro/courses/asc/laboratoare/01
+        https://ocw.cs.pub.ro/courses/asc/laboratoare/02
+        https://ocw.cs.pub.ro/courses/asc/laboratoare/03
+
+    Link Git:
