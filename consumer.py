@@ -6,7 +6,7 @@ Assignment 1
 March 2021
 """
 import time
-from threading import Thread, Lock
+from threading import Thread
 
 
 class Consumer(Thread):
@@ -15,7 +15,6 @@ class Consumer(Thread):
     """
 
     def __init__(self, carts, marketplace, retry_wait_time, **kwargs):
-        Thread.__init__(self, **kwargs)
         """
         Constructor.
 
@@ -31,17 +30,9 @@ class Consumer(Thread):
 
         :type kwargs:
         :param kwargs: other arguments that are passed to the Thread's __init__()
-        pass
         """
-        """
-        print()
-        print("Consumer:")
-        print("carts: ", carts)
-        print("market: ", marketplace)
-        print("retry: ", retry_wait_time)
-        print("kwargs: ", kwargs)
-        print()
-        """
+
+        Thread.__init__(self, **kwargs)
 
         self.carts = carts
         self.marketplace = marketplace
@@ -51,49 +42,45 @@ class Consumer(Thread):
         # lista de cumparaturi
         self.shopping_list = []
 
-        carts_type = {}
-        # trec prin fiecare cart
-
-        pass
-
     def run(self):
-        my_lock = Lock()
-        lock_print = Lock()
-
+        # se trece prin fiecare carucior al consumatorului
         for i in self.carts:
-            # in caz ca sunt mai multe carucioare in caracioare
+            # in caz ca sunt mai multe carucioare in aceeasi lista
             for j in i:
                 carts_type = j
                 action_type = carts_type['type']
                 product_type = carts_type['product']
                 quantity = carts_type['quantity']
+
+                # daca actiunea consumatorului este de adaugare
                 if action_type == 'add':
                     # adaug in cos daca gasesc produsul in lista
                     # se adauga de quantity ori
-                    for k in range(quantity):
+                    while quantity:
                         while True:
-                            add_cart = self.marketplace.add_to_cart(0, product_type)
+                            add_cart = self.marketplace.add_to_cart(product_type)
+
                             if add_cart:
                                 name_consumer = self.kwargs['name']
-                                # print(name_consumer, " bought ", product_type)
                                 to_append = str(name_consumer) + " bought " + str(product_type)
-                                with my_lock:
-                                    self.shopping_list.append(to_append)
+
+                                self.shopping_list.append(to_append)
                                 break
                             time.sleep(self.retry_wait_time)
+                        quantity -= 1
                 else:
-                    # adaug produsul in lista de la marketplace
-                    for k in range(quantity):
-                        with my_lock:
-                            while True:
-                                remove_cart = self.marketplace.remove_from_cart(0, product_type)
-                                if remove_cart:
-                                    name_consumer = self.kwargs['name']
-                                    to_append = str(name_consumer) + " bought " + str(product_type)
-                                    self.shopping_list.remove(to_append)
-                                    break
-                            time.sleep(self.retry_wait_time)
+                    # comanda este de stergere, asa ca
+                    # se adauga produsul in lista de la marketplace
+                    while quantity:
+                        while True:
+                            remove_cart = self.marketplace.remove_from_cart(product_type)
+                            if remove_cart:
+                                name_consumer = self.kwargs['name']
+                                to_append = str(name_consumer) + " bought " + str(product_type)
+                                self.shopping_list.remove(to_append)
+                                break
+                        time.sleep(self.retry_wait_time)
+                        quantity -= 1
 
-        with lock_print:
-            for i in self.shopping_list:
-                print(i)
+        for i in self.shopping_list:
+            print(i)

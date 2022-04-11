@@ -6,24 +6,23 @@ Assignment 1
 March 2021
 """
 
-from threading import Thread, Lock
-from product import Product, Coffee, Tea
 # pentru split pe un string
 import re
 # pentru sleep
 import time
-"""
-Primeste o linie dintr-o lista de produse,
-si intorce o lista cu fiecare camp din ea:
-(Tea(name='Linden', price=9, type='Herbal'), 2, 0.18)
-Va intoarce lista cuprinsa din urmatoarele elemente:
-(Tea(name='Linden', price=9, type='Herbal')
-2
-0.18
-"""
-
+from threading import Thread
 
 def decompose(product):
+    """
+    Primeste o linie dintr-o lista de produse,
+    si intorce o lista cu fiecare camp din ea:
+    (Tea(name='Linden', price=9, type='Herbal'), 2, 0.18)
+    Va intoarce lista cuprinsa din urmatoarele elemente:
+    (Tea(name='Linden', price=9, type='Herbal')
+    2
+    0.18
+    """
+
     # lista in care se va scrie
     list_product = []
     # produsul de convertit element cu element in lista
@@ -60,7 +59,6 @@ class Producer(Thread):
     """
 
     def __init__(self, products, marketplace, republish_wait_time, **kwargs):
-        Thread.__init__(self, **kwargs)
         """
         Constructor.
 
@@ -76,42 +74,51 @@ class Producer(Thread):
 
         @type kwargs:
         @param kwargs: other arguments that are passed to the Thread's __init__()
-        pass
         """
 
-        """
-        print()
-        print("producer:")
-        print("products: ", products)
-        print("market: ", marketplace)
-        print("republish wait time: ", republish_wait_time)
-        print("kwargs: ", kwargs)
-        print()
-        """
+        Thread.__init__(self, **kwargs)
 
         self.products = products
         self.marketplace = marketplace
         self.republish_wait_time = republish_wait_time
         self.kwargs = kwargs
 
-        pass
+        # the number of products put in the basket
+        self.number_products = 0
+
+        # id producator
+        self.id_producer = -1
 
     def run(self):
-        my_lock = Lock()
+
+        # setare id producator
+        self.id_producer = self.marketplace.register_producer()
+
+        # producator 0, a pus 0 produse
+        self.marketplace.number_products_producers.append({self.id_producer: 0})
+
+        producer_name = self.id_producer
+
+        # producatorul incearca sa publice la infinit
         while True:
-            if self.marketplace.number_products < self.marketplace.queue_size_per_producer:
-                for i in self.products:
-                    list_param = decompose(i)
-                    product_name = list_param.pop(0)
-                    product_number = list_param.pop(0)
-                    sleep_time = list_param.pop(0)
 
-                    #incerc sa pun in market produsele
-                    for j in range(product_number):
-                        with my_lock:
-                            self.marketplace.publish(0, product_name)
-                            self.marketplace.number_products += 1
-                            # print(product_name)
-                            time.sleep(sleep_time)
+            # se trece prin fiecare produs din lista lui de produse
+            for i in self.products:
 
-        pass
+                list_param = decompose(i)
+                product_name = list_param.pop(0)
+                product_number = list_param.pop(0)
+                sleep_time = list_param.pop(0)
+
+                # incerc sa pun in market produsele
+                # daca produce un nr multiplu de produse, se itereaza prin numarul lor
+                while product_number:
+                    # se publica in lista de la MarketPlace produsul, daca se poate
+                    can_publish = self.marketplace.publish(producer_name, product_name)
+                    if can_publish:
+                        # timpul de fabricare a produsului
+                        time.sleep(sleep_time)
+                    else:
+                        # daca producatorul nu poate sa scrie, asteapta o perioada de timp
+                        time.sleep(self.republish_wait_time)
+                    product_number -= 1
